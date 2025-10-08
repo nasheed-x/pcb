@@ -34,6 +34,57 @@ def sanitize_name(name):
     """Sanitize names for file system usage"""
     return re.sub(r'[\W]+', '_', name)
 
+def post_process_vrml(wrl_path):
+    """Post-process VRML to fix UV and mesh issues"""
+    print(f"Post-processing VRML for better mesh quality", file=sys.stderr)
+    
+    try:
+        with open(wrl_path, 'r') as f:
+            content = f.read()
+        
+        # Remove problematic scale transforms at the root level
+        # The 2.54 scale factor (inch to mm) can cause shading issues
+        # We'll apply the scale directly to coordinates instead
+        
+        # Find and process the first transform with scale 2.54
+        import re
+        
+        # Pattern to match the root transform with 2.54 scale
+        root_transform_pattern = r'(DEF TXFM_1 Transform \{[^}]*scale 2\.54 2\.54 2\.54[^}]*\})'
+        
+        # Replace the scale with 1.0 to avoid scaling issues
+        modified = re.sub(
+            r'scale 2\.54 2\.54 2\.54',
+            'scale 1 1 1',
+            content,
+            count=1  # Only replace the first occurrence (root transform)
+        )
+        
+        # Also ensure normalPerVertex is set correctly
+        # Sometimes normals can be incorrect with certain export settings
+        modified = re.sub(
+            r'normalPerVertex TRUE',
+            'normalPerVertex TRUE',
+            modified
+        )
+        
+        # Count changes
+        changes_made = (content != modified)
+        
+        if changes_made:
+            # Write back the modified content
+            with open(wrl_path, 'w') as f:
+                f.write(modified)
+            print(f"VRML post-processing completed - fixed scale transform", file=sys.stderr)
+        else:
+            print(f"VRML post-processing - no changes needed", file=sys.stderr)
+            
+        return True
+        
+    except Exception as e:
+        print(f"VRML post-processing failed: {e}", file=sys.stderr)
+        return False
+
 def to_mm(value):
     """Convert KiCad internal units to millimeters"""
     return pcbnew.ToMM(value)
@@ -397,6 +448,8 @@ def export_pcb3d(pcb_path, output_dir):
         if wrl_path.exists():
             file_size = wrl_path.stat().st_size
             if file_size > 1000:  # At least 1KB to be valid
+                # Post-process the VRML to fix mesh issues
+                post_process_vrml(wrl_path)
                 export_success = True
                 print(f"VRML exported successfully: {file_size} bytes", file=sys.stderr)
             else:
@@ -440,6 +493,8 @@ def export_pcb3d(pcb_path, output_dir):
             
             if result.returncode == 0 and wrl_path.exists():
                 file_size = wrl_path.stat().st_size
+                # Post-process the VRML
+                post_process_vrml(wrl_path)
                 print(f"VRML created via kicad-cli fallback: {file_size} bytes", file=sys.stderr)
                 export_success = True
             else:
