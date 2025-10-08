@@ -19,3 +19,7 @@ node_modules
 .DS_Store
 build
 .pcb
+
+# Blender addon reference files
+pcb2blender_exporter/
+pcb2blender_importer/
