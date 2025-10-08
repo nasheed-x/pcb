@@ -417,15 +417,21 @@ fn create_pcb3d_archive(output_path: &Path, export_result: &PythonExportResult, 
         }
     }
     
-    // Write layer SVG files
+    // Write layer SVG files in the specific order expected by importer
+    // Must match PCB3D.INCLUDED_LAYERS order from pcb3d.py
     let layers_dir = Path::new(&export_result.layers_dir);
-    for entry in fs::read_dir(layers_dir)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.extension() == Some(std::ffi::OsStr::new("svg")) {
-            let file_name = path.file_name().unwrap().to_str().unwrap();
-            zip.start_file(format!("{}/{}", pcb3d::LAYERS_DIR, file_name), options)?;
-            let content = fs::read(&path)?;
+    let layer_order = [
+        "F_Cu", "B_Cu",
+        "F_Paste", "B_Paste",
+        "F_SilkS", "B_SilkS",
+        "F_Mask", "B_Mask",
+    ];
+    
+    for layer_name in &layer_order {
+        let svg_path = layers_dir.join(format!("{}.svg", layer_name));
+        if svg_path.exists() {
+            zip.start_file(format!("{}/{}.svg", pcb3d::LAYERS_DIR, layer_name), options)?;
+            let content = fs::read(&svg_path)?;
             zip.write_all(&content)?;
         }
     }
