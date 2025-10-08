@@ -127,10 +127,13 @@ def export_layers(board, bounds, output_dir):
     plot_options.SetUseGerberAttributes(True)
     plot_options.SetDrillMarksType(pcbnew.DRILL_MARKS_NO_DRILL_SHAPE)
     
-    # Include these layers
+    # Include these layers - interleaved front/back like the original
+    # Matches PCB3D.INCLUDED_LAYERS from pcb3d.py
     layers = [
-        "F_Cu", "F_Paste", "F_SilkS", "F_Mask",
-        "B_Cu", "B_Paste", "B_SilkS", "B_Mask"
+        "F_Cu", "B_Cu",
+        "F_Paste", "B_Paste", 
+        "F_SilkS", "B_SilkS",
+        "F_Mask", "B_Mask"
     ]
     
     for layer_name in layers:
@@ -371,38 +374,43 @@ def export_pcb3d(pcb_path, output_dir):
     components_dir = output_dir / "components"
     components_dir.mkdir(exist_ok=True)
     
-    # Export VRML using pcbnew API (same as the original pcb2blender_exporter)
+    # Export VRML using the exact same parameters as pcb2blender_exporter
     export_success = False
     
-    # First try pcbnew API
+    # Use pcbnew.ExportVRML with the exact same parameters as the original export.py
+    print(f"Exporting VRML using pcbnew", file=sys.stderr)
     try:
-        # Use the exact same parameters as the original pcb2blender_exporter/export.py
-        # Parameters: path, scale, export3D, useRelativePaths, usePlainPCB, refPlain, modelDir, xRef, yRef
+        # These are the EXACT parameters from pcb2blender_exporter/export.py line 43
         result = pcbnew.ExportVRML(
             str(wrl_path),           # Output file path
-            0.001,                   # Scale (mm to meters conversion like original)
-            True,                    # Export 3D files
-            False,                   # Use relative paths
-            True,                    # Use plain PCB
-            True,                    # Reference plain
+            0.001,                   # Scale: mm to meters conversion (exactly as original)
+            True,                    # Export 3D models
+            False,                   # Use relative paths: False
+            True,                    # Use plain PCB: True
+            True,                    # Reference plain: True  
             str(components_dir),     # Components directory
             0.0,                     # X reference
             0.0                      # Y reference
         )
         
-        # Check if file was created
+        # Check if file was created and has content
         if wrl_path.exists():
             file_size = wrl_path.stat().st_size
             if file_size > 1000:  # At least 1KB to be valid
                 export_success = True
+                print(f"VRML exported successfully: {file_size} bytes", file=sys.stderr)
+            else:
+                print(f"VRML file too small: {file_size} bytes", file=sys.stderr)
+        else:
+            print(f"VRML file was not created at {wrl_path}", file=sys.stderr)
             
     except Exception as e:
         print(f"pcbnew.ExportVRML exception: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc(file=sys.stderr)
-        
+    
+    # If pcbnew didn't work, try kicad-cli as fallback
     if not export_success:
-        # Try alternative: use kicad-cli as fallback
         print(f"Trying kicad-cli as fallback", file=sys.stderr)
         kicad_cli = shutil.which("kicad-cli")
         if not kicad_cli:
@@ -421,12 +429,9 @@ def export_pcb3d(pcb_path, output_dir):
             print(f"Found kicad-cli at: {kicad_cli}", file=sys.stderr)
             cmd = [
                 kicad_cli,
-                "pcb",
-                "export",
-                "vrml",
+                "pcb", "export", "vrml",
                 str(pcb_path),
-                "-o",
-                str(wrl_path),
+                "-o", str(wrl_path),
                 "--units", "mm"
             ]
             
@@ -439,7 +444,7 @@ def export_pcb3d(pcb_path, output_dir):
                 export_success = True
             else:
                 print(f"kicad-cli failed: {result.stderr}", file=sys.stderr)
-        
+    
     if not export_success:
         print(f"All export attempts failed, creating fallback board geometry", file=sys.stderr)
         # Create a VRML with actual board dimensions
@@ -479,16 +484,17 @@ Transform {{
     # Get board definitions
     board_defs = get_board_definitions(board)
     
-    # Extract pad information
+    # Extract pad information (matching original export.py logic)
     pads = {}
-    for footprint in board.Footprints():
+    for i, footprint in enumerate(board.Footprints()):
         has_model = len(footprint.Models()) > 0
         is_tht_or_smd = bool(footprint.GetAttributes() & (pcbnew.FP_THROUGH_HOLE | pcbnew.FP_SMD))
         value = footprint.GetValue()
         reference = footprint.GetReference()
         
-        for i, pad in enumerate(footprint.Pads()):
-            name = sanitize_name(f"{value}_{reference}_{footprint.m_Uuid.AsString()}_{i}")
+        for j, pad in enumerate(footprint.Pads()):
+            # Use simpler naming like the original: value_reference_i_j
+            name = sanitize_name(f"{value}_{reference}_{i}_{j}")
             is_flipped = pad.IsFlipped()
             has_paste = pad.IsOnLayer(pcbnew.B_Paste if is_flipped else pcbnew.F_Paste)
             
