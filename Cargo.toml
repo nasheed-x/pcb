@@ -23,6 +23,7 @@ similar = "2.7.0"
 pcb-command-runner = { path = "crates/pcb-command-runner" }
 pcb-eda = { path = "crates/pcb-eda" }
 pcb-layout = { path = "crates/pcb-layout" }
+pcb-render = { path = "crates/pcb-render" }
 pcb-sch = { path = "crates/pcb-sch" }
 pcb-zen = { path = "crates/pcb-zen" }
 pcb-zen-core = { path = "crates/pcb-zen-core", default-features = true }

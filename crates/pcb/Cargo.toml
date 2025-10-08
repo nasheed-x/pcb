@@ -25,6 +25,7 @@ pcb-zen = { workspace = true }
 pcb-sch = { workspace = true }
 pcb-layout = { workspace = true }
 pcb-sim = { workspace = true }
+pcb-render = { workspace = true }
 log = { workspace = true }
 ariadne = { workspace = true }
 env_logger = { workspace = true }
@@ -48,6 +49,7 @@ tempfile = { workspace = true }
 ignore = { workspace = true }
 semver = { workspace = true }
 crossterm = { workspace = true }
+dirs = { workspace = true }
 
 axoupdater = { version = "0.9", features = ["blocking"] }
 

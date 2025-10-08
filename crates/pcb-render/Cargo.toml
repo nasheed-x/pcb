@@ -1,0 +1,22 @@
+[package]
+name = "pcb-render"
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+
+[dependencies]
+anyhow = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+zip = { workspace = true }
+log = { workspace = true }
+pcb-kicad = { path = "../pcb-kicad" }
+pcb-layout = { path = "../pcb-layout" }
+pcb-sch = { path = "../pcb-sch" }
+pcb-ui = { path = "../pcb-ui" }
+dirs = { workspace = true }
+
+[dev-dependencies]
+pcb-test-utils = { path = "../pcb-test-utils" }
+insta = { workspace = true }

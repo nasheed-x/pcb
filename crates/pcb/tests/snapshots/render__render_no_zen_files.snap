@@ -1,0 +1,11 @@
+---
+source: crates/pcb/tests/render.rs
+expression: output
+---
+Command: pcb render
+Exit Code: 1
+
+--- STDOUT ---
+
+--- STDERR ---
+Error: No .zen source files found in <TEMP_DIR>

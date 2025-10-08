@@ -2799,6 +2799,7 @@ dependencies = [
  "comfy-table",
  "crossterm 0.28.1",
  "dir-diff",
+ "dirs",
  "duct",
  "env_logger",
  "ignore",
@@ -2811,6 +2812,7 @@ dependencies = [
  "pcb-fmt",
  "pcb-kicad",
  "pcb-layout",
+ "pcb-render",
  "pcb-sch",
  "pcb-sim",
  "pcb-test-utils",
@@ -2895,6 +2897,25 @@ dependencies = [
  "tempfile",
  "thiserror 1.0.69",
  "walkdir",
+ "zip 4.3.0",
+]
+
+[[package]]
+name = "pcb-render"
+version = "0.2.7"
+dependencies = [
+ "anyhow",
+ "dirs",
+ "insta",
+ "log",
+ "pcb-kicad",
+ "pcb-layout",
+ "pcb-sch",
+ "pcb-test-utils",
+ "pcb-ui",
+ "serde",
+ "serde_json",
+ "tempfile",
  "zip 4.3.0",
 ]
 

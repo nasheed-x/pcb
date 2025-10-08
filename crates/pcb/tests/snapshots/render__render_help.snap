@@ -1,0 +1,22 @@
+---
+source: crates/pcb/tests/render.rs
+expression: output
+---
+Command: pcb render --help
+Exit Code: 0
+
+--- STDOUT ---
+Render PCB3D files for 3D visualization
+
+Usage: pcb render [OPTIONS] [PATHS]...
+
+Arguments:
+  [PATHS]...  One or more .zen files to process for rendering. When omitted, all .zen files in the
+              current directory tree are processed
+
+Options:
+  -o, --output <OUTPUT>  Output .pcb3d file path
+      --no-open          Skip opening the output file after generation
+      --offline          Disable network access (offline mode) - only use vendored dependencies
+  -h, --help             Print help
+--- STDERR ---

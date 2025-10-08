@@ -14,6 +14,7 @@ mod layout;
 mod lsp;
 mod open;
 mod release;
+mod render;
 mod sim;
 mod tag;
 mod test;
@@ -83,6 +84,9 @@ enum Commands {
     /// Run SPICE simulations
     Sim(sim::SimArgs),
 
+    /// Render PCB3D files for 3D visualization
+    Render(render::RenderArgs),
+
     /// External subcommands are forwarded to pcb-<command>
     #[command(external_subcommand)]
     External(Vec<OsString>),
@@ -119,6 +123,7 @@ fn main() -> anyhow::Result<()> {
         Commands::Tag(args) => tag::execute(args),
         Commands::Vendor(args) => vendor::execute(args),
         Commands::Sim(args) => sim::execute(args),
+        Commands::Render(args) => render::execute(args),
         Commands::External(args) => {
             if args.is_empty() {
                 anyhow::bail!("No external command specified");
